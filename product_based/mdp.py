@@ -99,9 +99,9 @@ def build_mdp(data_bound=80,
                             node_dict[t_node] = dict()
                         else:
                             prop = state_label[t_wp]
-                            prob_label = {frozenset([prop,]): 1.0,}                        
+                            prob_label = {frozenset([prop,]): 1.0,}
                             node_dict[t_node] = dict(prob_label)
-                    # move and transmit
+                    # transition by move and transmit
                     # dist_e = dist_2D(f_wp, t_wp)
                     f_t_rate = intp_rate(f_wp_rate, t_wp_rate)
                     for i in range(10):
@@ -109,7 +109,7 @@ def build_mdp(data_bound=80,
                         actual_t_d = f_d - actual_f_t_rate*Ts
                         if actual_t_d<=t_d<=actual_t_d+quant_size:
                             if (f_node, (t_wp,1), t_node) not in edge_dict:
-                                edge_dict[(f_node, (t_wp,1), t_node)] = [1, 1] # weight, uniform cost 1 (could be replaced by dist_e)
+                                edge_dict[(f_node, (t_wp,1), t_node)] = [1, 1] # frequency for probility, uniform cost 1 (could be replaced by dist_e)
                                 U.add((t_wp,1))
                                 if f_node not in Us:
                                     Us[f_node] = set([(t_wp,1)])
@@ -117,7 +117,7 @@ def build_mdp(data_bound=80,
                                     Us[f_node].add((t_wp,1))
                             else:
                                 edge_dict[(f_node, (t_wp,1), t_node)][0] += 1
-                    # only move
+                    # transition by only move
                     if t_d == f_d:
                         if (f_node, (t_wp,0), t_node) not in edge_dict:
                             edge_dict[(f_node, (t_wp,0), t_node)] = [1, 1]
@@ -126,7 +126,7 @@ def build_mdp(data_bound=80,
                                 Us[f_node] = set([(t_wp,0)])
                             else:
                                 Us[f_node].add((t_wp,0))
-                    # action
+                    # transition by action
                     if f_wp in state_label.keys():
                         prop = state_label[f_wp]
                         for g_act,attri in act.items():
@@ -135,7 +135,7 @@ def build_mdp(data_bound=80,
                                 if f_d + data <= data_bound:
                                     allowed_data_set = [d for d in data_set if d>=f_d+data]
                                     t_d_min = min(allowed_data_set, key=lambda d: abs(d-(f_d+data)))
-                                    t_node_act = (f_wp, t_d_min)
+                                    t_node_act = (f_wp, t_d_min, tuple(g_act))
                                     if t_node_act not in node_dict:
                                         prob_label = {frozenset([prop, g_act]): 1.0,}
                                         node_dict[t_node_act] = dict(prob_label)
@@ -146,6 +146,14 @@ def build_mdp(data_bound=80,
                                             Us[f_node] = set([tuple(g_act),])
                                         else:
                                             Us[f_node].add(tuple(g_act))
+                                    if (t_node_act, (f_wp,0), f_node) not in edge_dict:
+                                        edge_dict[(t_node_act, (f_wp,0), f_node)] = [1, 1]
+                                        U.add((f_wp,0))
+                                        if t_node_act not in Us:
+                                            Us[t_node_act] = set([(f_wp,0),])
+                                        else:
+                                            Us[t_node_act].add((f_wp,0))
+                                    
     # ----------------------------------------
     # unify transition probabilities 
     edge_dict = unify_prob(node_dict, Us, edge_dict)
