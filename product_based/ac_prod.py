@@ -1,13 +1,16 @@
-from math import ceil, floor, exp
+from math import ceil, floor, exp, sqrt
 import numpy as np
+import random
+
+import time
 
 def dist_2D(p1, p2):
     return sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2)
 
 
 class ac_learn(object):
-    def __init__(self, prod_mdp, clambda=0.98, gamma=1, beta=1, D=1, theta0=None):
-        self.prod_mdp = prod_mdp
+    def __init__(self, mdp, clambda=0.98, gamma=1, beta=1, D=1, theta0=None):
+        self.mdp = mdp
         # for critic 
         self.clambda = clambda
         self.gamma = gamma
@@ -61,7 +64,7 @@ class ac_learn(object):
         policy = self.policy_approx(s_f)
         a_f = self.act_by_policy(policy)
         sa_f = (s_f, a_f)
-        while (sa_f[0] != self.goal):
+        while (sa_f[0] not in self.goal):
             traj_log.append(sa_f[0])
             theta_log.append((l, (self.theta[0], self.theta[1])))
             d_theta_log.append((l, (self.d_theta[0], self.d_theta[1])))
@@ -80,7 +83,7 @@ class ac_learn(object):
             self.actor_update(sa_t, beta)
             sa_f = tuple(sa_t)
             l += 1
-        print 'one episode done in %d steps, with total cost %d' %(l, total_cost)
+        print 'one episode done in %d steps, with total cost %d, within time %s' %(l, total_cost, str(time.time()-start))
         print 'Final theta', self.theta
         cost_log = (l, total_cost)
         episode_learn_log = (traj_log, cost_log, theta_log, d_theta_log)
@@ -89,7 +92,7 @@ class ac_learn(object):
     def policy_approx(self, s_f):
         boltzmann = dict()
         score = dict()
-        comp_a_f_list = list(self.prod_mdp.node[s_f]['act'].copy())
+        comp_a_f_list = list(self.mdp.node[s_f]['act'].copy())
         #--- mec conditions        
         a_f_list = [a for a in comp_a_f_list if a in self.mec_act[s_f]]
         #print('s_f: %s, a_f_list: %s' %(str(s_f), str(a_f_list)))
@@ -143,13 +146,13 @@ class ac_learn(object):
 
     def successor_prob(self, sa_f):
         s_f, a_f = sa_f
-        comp_s_ts = list(self.prod_mdp.neighbors(s_f))
+        comp_s_ts = list(self.mdp.neighbors(s_f))
         s_ts = []
         uni_prob_ts = []        
         for s_t in comp_s_ts:
-            if a_f in self.prod_mdp.edge[s_f][s_t]['prop']:
-                s_ts.add(s_t)
-                uni_prob_ts.add(self.prod_mdp.edge[s_f][s_t]['prop'][a_f][0])
+            if a_f in self.mdp.edge[s_f][s_t]['prop']:
+                s_ts.append(s_t)
+                uni_prob_ts.append(self.mdp.edge[s_f][s_t]['prop'][a_f][0])
         return s_ts, uni_prob_ts    
 
     def act_by_policy(self, policy):
@@ -168,7 +171,7 @@ class ac_learn(object):
     def successor_deter(self, sa_f):
         s_f, a_f = sa_f
         s_ts, uni_prob_ts = self.successor_prob(sa_f)
-        prob_list = np.cumsum(uni_prob_list)
+        prob_list = np.cumsum(uni_prob_ts)
         prob = random.random()
         j_list = [j for j,p in enumerate(prob_list) if p>prob]
         if j_list:
