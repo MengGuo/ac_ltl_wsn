@@ -10,8 +10,8 @@ node_dict, edge_dict, U, initial_node, initial_label = pickle.load(open('./mdp.p
 motion_mdp = Motion_MDP(node_dict, edge_dict, U, initial_node, initial_label)
 
 #----
-task_formula = "& G F & r1 g1 & G F & r2 g2 G F & r4 g3"
-# task_formula = "& G F (& r1 g1) & G F (& r2 g2) G F & r3 F (& r4 g3)"
+# task_formula = "& G F & r1 g1 & G F & r2 g2 G F & r4 g3"
+task_formula = "& G F & r1 g1 & G F & r2 g2 & G F & r3 F & r4 g3 G F & r2 g1"
 dra = Dra(task_formula)
 
 #----

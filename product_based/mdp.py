@@ -85,7 +85,7 @@ def build_mdp(data_bound=80,
                     f_node = (f_wp, f_d)
                     if f_node not in node_dict:
                         if f_wp not in state_label.keys():
-                            node_dict[f_node] = dict()
+                            node_dict[f_node] = {frozenset(): 1.0,}
                         else:
                             prop = state_label[f_wp]
                             prob_label = {frozenset([prop,]): 1.0,}
@@ -96,7 +96,7 @@ def build_mdp(data_bound=80,
                     t_node = (t_wp, t_d)
                     if t_node not in node_dict:
                         if t_wp not in state_label.keys():
-                            node_dict[t_node] = dict()
+                            node_dict[t_node] = {frozenset(): 1.0,}
                         else:
                             prop = state_label[t_wp]
                             prob_label = {frozenset([prop,]): 1.0,}
