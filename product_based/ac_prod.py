@@ -2,6 +2,8 @@ from math import ceil, floor, exp, sqrt
 import numpy as np
 import random
 
+from networkx import shortest_path, shortest_path_length
+
 import time
 
 def dist_2D(p1, p2):
@@ -9,8 +11,8 @@ def dist_2D(p1, p2):
 
 
 class ac_learn(object):
-    def __init__(self, mdp, clambda=0.98, gamma=1, beta=1, D=1, theta0=None):
-        self.mdp = mdp
+    def __init__(self, prod_mdp, clambda=0.98, gamma=1, beta=1, D=1, theta0=None):
+        self.prod_mdp = prod_mdp
         # for critic 
         self.clambda = clambda
         self.gamma = gamma
@@ -26,24 +28,22 @@ class ac_learn(object):
         self.d_theta = np.array([0.0, 0.0])
         self.D = D
         self.beta = beta
-        print '---- actor_critic learner for mdp: %d nodes and %d edges----' %(len(self.mdp.nodes()), len(self.mdp.edges()))
+        print '---- actor_critic learner for mdp: %d nodes and %d edges----' %(len(self.prod_mdp.nodes()), len(self.prod_mdp.edges()))
 
     def set_init_goal(self, init, goal):
-        # single initial state
-        # set of goal states
         self.init = init
         self.goal = goal
 
     def set_mec(self, mec):
-        self.mec_set = mec[0]
-        self.mec_act = mec[2]
+        self.mec_set = mec[0] # allowed _states
+        self.mec_act = mec[2] # allowed_actions
 
     def set_theta(self, theta):
         self.theta = np.array(theta)
         
     def cost(self, sa_f):
         s_f, a_f = sa_f
-        if s_f in self.goal:
+        if s_f == self.goal:
             return 0
         else:
             return 1
@@ -62,19 +62,25 @@ class ac_learn(object):
         #---
         s_f = self.init
         policy = self.policy_approx(s_f)
+        # print 'initial_policy', policy
         a_f = self.act_by_policy(policy)
+        # print 'chosen action', a_f
         sa_f = (s_f, a_f)
-        while (sa_f[0] not in self.goal):
+        while (sa_f[0] != self.goal):
+            # print '=====New sa_f=========' 
+            # print 'sa_f', sa_f
+            # print 'theta', self.theta 
             traj_log.append(sa_f[0])
             theta_log.append((l, (self.theta[0], self.theta[1])))
             d_theta_log.append((l, (self.d_theta[0], self.d_theta[1])))
             s_t = self.successor_deter(sa_f)
-            #print('s_t: %s' %str(s_t))
+            # print('s_t: %s' %str(s_t))
             policy = self.policy_approx(s_t)
-            #print('--------------------')
-            #print('Policy: %s' %str(policy))
+            # print('--------------------')
+            # print('Policy: %s' %str(policy))
             a_t = self.act_by_policy(policy)
-            #print('Chosen action %s' %str(a_t))
+            # print('Chosen action %s' %str(a_t))
+            # print '--------------------'
             sa_t = (s_t, a_t)
             total_cost += self.cost(sa_t)
             # critic update
@@ -83,7 +89,7 @@ class ac_learn(object):
             self.actor_update(sa_t, beta)
             sa_f = tuple(sa_t)
             l += 1
-        print 'one episode done in %d steps, with total cost %d, within time %s' %(l, total_cost, str(time.time()-start))
+        print 'One episode done in %d steps, with total cost %d, within time %s' %(l, total_cost, str(time.time()-start))
         print 'Final theta', self.theta
         cost_log = (l, total_cost)
         episode_learn_log = (traj_log, cost_log, theta_log, d_theta_log)
@@ -92,16 +98,16 @@ class ac_learn(object):
     def policy_approx(self, s_f):
         boltzmann = dict()
         score = dict()
-        comp_a_f_list = list(self.mdp.node[s_f]['act'].copy())
-        #--- mec conditions        
-        a_f_list = [a for a in comp_a_f_list if a in self.mec_act[s_f]]
-        #print('s_f: %s, a_f_list: %s' %(str(s_f), str(a_f_list)))
+        a_f_list = list(self.prod_mdp.node[s_f]['act'].copy())
+        # --- mec conditions        
+        # a_f_list = [a for a in comp_a_f_list if a in self.mec_act[s_f]]
+        # print('s_f: %s, a_f_list: %s' %(str(s_f), str(a_f_list)))
         total_exp_score = 0
         for a_f in a_f_list:
             sa_f = (s_f, a_f)
             sa_score = self.compute_score(sa_f)
             score[a_f] = sa_score
-            #print('sa_f:%s, exp_score: %f' %(str(sa_f), exp_score))
+            # print('sa_f:%s, exp_score: %f' %(str(sa_f), exp_score))
         max_af_score = max(score.values())
         MAX = 20
         if max_af_score > MAX:
@@ -114,45 +120,55 @@ class ac_learn(object):
         policy = dict()
         for a_f in boltzmann:
             policy[a_f] = boltzmann[a_f]/total_exp_score
-        #print(list(policy.values()))
+        # print(list(policy.values()))
         return policy    
 
     def compute_score(self, sa_f):
         parameter = self.compute_parameter(sa_f)
         score = np.dot(self.theta, parameter)
-        #print('sa_f:%s, parameter: %s, score: %f' %(str(sa_f),str(parameter), score))
+        # print('sa_f:%s, parameter: %s, score: %f' %(str(sa_f),str(parameter), score))
         return score
 
     def compute_parameter(self, sa_f):
-        #print('**********')
-        #print('compute_paramter: sa_f, %s' %str(sa_f))
+        # print('**********')
+        # print('compute_paramter: sa_f, %s' %str(sa_f))
         s_f, a_f = sa_f
         s_ts, uni_prob_ts = self.successor_prob(sa_f)
-        #print('s_ts, %s, uni_prob_ts: %s' %(str(s_ts), str(uni_prob_ts)))
+        # print('s_ts, %s, uni_prob_ts: %s' %(str(s_ts), str(uni_prob_ts)))
         sum_distance_dif = 0
-        sum_data_dif = 0
+        sum_dra_dif = 0
         for k, s_t in enumerate(s_ts):
-            distance_dif = min([dist_2D(s_t[0][0], goal[0][0]) for goal in self.goal])
-            sum_distance_dif += uni_prob_ts[k]*distance_dif
-            data_dif = min([abs(goal[0][1]- s_t[0][1]) for goal in self.goal])
-            sum_data_dif += uni_prob_ts[k]*data_dif
-            #print('s_t: %s, distance_self: %f, data_self: %f' %(str(s_t), distance_dif, data_dif))
-        distance_self = min([dist_2D(s_f[0][0], goal[0][0]) for goal in self.goal])
-        data_self = min([abs(goal[0][1]- s_f[0][1]) for goal in self.goal])
-        parameter = np.array([distance_self-sum_distance_dif, data_self-sum_data_dif])
-        #print('parameter: (%f, %f)' %(parameter[0],parameter[1]))
+            # distance_dif = min([dist_2D(s_t[0][0], goal[0][0]) for goal in self.goal]) + min([abs(goal[0][1]- s_t[0][1]) for goal in self.goal])
+            # distance_dif = shortest_path_length(self.prod_mdp.graph['mdp'],s_t[0],self.goal[0])
+            # distance_dif = dist_2D(s_t[0][0], self.goal[0][0]) + abs(self.goal[0][1]- s_t[0][1])
+            distance_dif = shortest_path_length(self.prod_mdp.graph['mdp'],s_t[0],self.goal[0])
+            sum_distance_dif += uni_prob_ts[k]*distance_dif            
+            dra_dif = shortest_path_length(self.prod_mdp,s_t,self.goal)
+            # dra_dif = shortest_path_length(self.prod_mdp.graph['dra'],s_t[2],self.goal[2])
+            sum_dra_dif += uni_prob_ts[k]*dra_dif
+            # print('s_t: %s, distance_dif: %f, dra_dif: %f' %(str(s_t), distance_dif, dra_dif))
+        # distance_self = min([dist_2D(s_f[0][0], goal[0][0]) for goal in self.goal]) + min([abs(goal[0][1]- s_f[0][1]) for goal in self.goal])
+        # distance_self = dist_2D(s_f[0][0], self.goal[0][0]) + abs(self.goal[0][1]- s_f[0][1])
+        distance_self = shortest_path_length(self.prod_mdp.graph['mdp'],s_f[0],self.goal[0]) 
+        dra_self = shortest_path_length(self.prod_mdp,s_f,self.goal)
+        # dra_self = shortest_path_length(self.prod_mdp.graph['dra'],s_f[2],self.goal[2])
+        # print('s_f: %s, distance_self: %f, dra_self: %f' %(str(s_f), distance_self, dra_self))
+        parameter = np.array([distance_self-sum_distance_dif, dra_self-sum_dra_dif])
+        # print('parameter: (%f, %f)' %(parameter[0],parameter[1]))
         return parameter
 
 
     def successor_prob(self, sa_f):
         s_f, a_f = sa_f
-        comp_s_ts = list(self.mdp.neighbors(s_f))
+        # print 'sa_f in successor_prob', sa_f
+        comp_s_ts = list(self.prod_mdp.neighbors(s_f))
         s_ts = []
         uni_prob_ts = []        
         for s_t in comp_s_ts:
-            if a_f in self.mdp.edge[s_f][s_t]['prop']:
+            if a_f in self.prod_mdp.edge[s_f][s_t]['prop']:
                 s_ts.append(s_t)
-                uni_prob_ts.append(self.mdp.edge[s_f][s_t]['prop'][a_f][0])
+                uni_prob_ts.append(self.prod_mdp.edge[s_f][s_t]['prop'][a_f][0])
+        # print 's_ts, uni_prob_ts', (s_ts, uni_prob_ts)
         return s_ts, uni_prob_ts    
 
     def act_by_policy(self, policy):
@@ -165,11 +181,12 @@ class ac_learn(object):
             l = j_list[0]
         else:
             l = 0
-        #l = [j for j,p in enumerate(prob_list) if p>prob][0]
+        # l = [j for j,p in enumerate(prob_list) if p>prob][0]
         return act_list[l]    
 
     def successor_deter(self, sa_f):
         s_f, a_f = sa_f
+        # print 'sa_f in successor_deter', sa_f
         s_ts, uni_prob_ts = self.successor_prob(sa_f)
         prob_list = np.cumsum(uni_prob_ts)
         prob = random.random()
@@ -178,7 +195,7 @@ class ac_learn(object):
             l = j_list[0]
         else:
             l = 0
-        #l = [j for j,p in enumerate(prob_list) if p>prob][0]
+        # l = [j for j,p in enumerate(prob_list) if p>prob][0]
         return s_ts[l]
         
     def critic_update(self, sa_f, new_sa_f, gamma):
@@ -204,6 +221,8 @@ class ac_learn(object):
         new_varphi = self.varphi(new_sa_f)
         d_theta = beta*self.compute_tau(self.r)*np.dot(self.r,new_varphi)*new_varphi
         new_theta = self.theta - d_theta
+        new_theta[0] = min([max([new_theta[0],0]), 0.01])
+        new_theta[1] = max([new_theta[1], 0.01])
         self.theta = new_theta
         self.d_theta = d_theta
 

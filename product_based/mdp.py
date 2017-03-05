@@ -2,7 +2,6 @@
 
 from networkx.classes.digraph import DiGraph
 
-from networkx import shortest_path, NetworkXNoPath
 from math import ceil, floor, exp
 
 import pickle
@@ -48,8 +47,8 @@ def unify_prob(node_dict, Us, edge_dict):
 
 
 def build_mdp(data_bound=80,
-              quant_size=1,
-              Ts=1,
+              quant_size=20,
+              Ts=15,
               uncertainty=[0.7,1.1],
               initial=[((556,373),0),'r1'],
               roadmap_dir = '../build_roadmap/roadmap_2D.p',
@@ -108,6 +107,12 @@ def build_mdp(data_bound=80,
                         for t_d in data_set:
                             if actual_t_d<=t_d<=actual_t_d+quant_size:
                                 t_node = (t_wp, t_d)
+                                if t_wp not in state_label.keys():
+                                    node_dict[t_node] = {frozenset(): 1.0,}
+                                else:
+                                    prop = state_label[t_wp]
+                                    prob_label = {frozenset([prop,]): 1.0,}
+                                    node_dict[t_node] = dict(prob_label)
                                 if (f_node, (t_wp,1), t_node) not in edge_dict:
                                     edge_dict[(f_node, (t_wp,1), t_node)] = [1, 1] # frequency for probility, uniform cost 1 (could be replaced by dist_e)
                                     U.add((t_wp,1))
@@ -133,21 +138,25 @@ def build_mdp(data_bound=80,
                             if g_act != 'g0':
                                 data = attri[0]
                                 if f_d + data <= data_bound:
-                                    allowed_data_set = [d for d in data_set if d>=f_d+data]
-                                    t_d_min = min(allowed_data_set, key=lambda d: abs(d-(f_d+data)))
+                                    t_d_min = [d for d in data_set if d>=f_d+data][0]
                                     t_node_act = (f_wp, t_d_min, tuple(g_act))
                                     if t_node_act not in node_dict:
                                         prob_label = {frozenset([prop, g_act]): 1.0,}
                                         node_dict[t_node_act] = dict(prob_label)
                                     if (f_node, tuple(g_act), t_node_act) not in edge_dict:
                                         edge_dict[(f_node, tuple(g_act), t_node_act)] = [1, 1]
+                                        print 'added action edge', (f_node, tuple(g_act), t_node_act)
                                         U.add(tuple(g_act))
                                         if f_node not in Us:
                                             Us[f_node] = set([tuple(g_act),])
                                         else:
                                             Us[f_node].add(tuple(g_act))
-                                    if (t_node_act, (f_wp,0), f_node) not in edge_dict:
-                                        edge_dict[(t_node_act, (f_wp,0), f_node)] = [1, 1]
+                                    tt_node_act = (f_wp, t_d_min)
+                                    if tt_node_act not in node_dict:
+                                        prob_label = {frozenset([prop,]): 1.0,}
+                                        node_dict[tt_node_act] = dict(prob_label)
+                                    if (t_node_act, (f_wp,0), tt_node_act) not in edge_dict:
+                                        edge_dict[(t_node_act, (f_wp,0), tt_node_act)] = [1, 1]
                                         U.add((f_wp,0))
                                         if t_node_act not in Us:
                                             Us[t_node_act] = set([(f_wp,0),])
