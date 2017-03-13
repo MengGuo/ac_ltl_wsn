@@ -47,8 +47,8 @@ def unify_prob(node_dict, Us, edge_dict):
 
 
 def build_mdp(data_bound=80,
-              quant_size=20,
-              Ts=15,
+              quant_size=1,
+              Ts=1,
               uncertainty=[0.7,1.1],
               initial=[((556,373),0),'r1'],
               roadmap_dir = '../build_roadmap/roadmap_2D.p',
@@ -174,4 +174,3 @@ def build_mdp(data_bound=80,
 
 if __name__ == "__main__":
     build_mdp()
-    

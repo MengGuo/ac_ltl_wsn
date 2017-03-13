@@ -196,6 +196,9 @@ class ac_learn(object):
         else:
             l = 0
         # l = [j for j,p in enumerate(prob_list) if p>prob][0]
+        # print 's_ts', s_ts
+        # print 'uni_prob_ts', uni_prob_ts
+        # print 'l', l
         return s_ts[l]
         
     def critic_update(self, sa_f, new_sa_f, gamma):
@@ -235,5 +238,4 @@ class ac_learn(object):
             sa_p = (s_f, a_p)
             parameter_p = self.compute_parameter(sa_p)
             parameter_f -= policy[a_p]*parameter_p
-        return parameter_f        
-
+        return parameter_f 
