@@ -536,4 +536,37 @@ Final theta [ 0.          3.38147685]
 --------------k=24--------------
 ---one episode starts---
 initial theta [ 0.          3.38147685]
+One episode done in 237 steps, with total cost 236, within time 14304.7620089
+Final theta [ 0.01        3.38714339]
+--------------k=25--------------
+---one episode starts---
+initial theta [ 0.01        3.38714339]
+One episode done in 174 steps, with total cost 173, within time 15838.6328051
+Final theta [ 0.01        3.39217967]
+--------------k=26--------------
+---one episode starts---
+initial theta [ 0.01        3.39217967]
+One episode done in 301 steps, with total cost 300, within time 21482.463763
+Final theta [ 0.01        3.39323674]
+--------------k=27--------------
+---one episode starts---
+initial theta [ 0.01        3.39323674]
+One episode done in 222 steps, with total cost 221, within time 20106.4870319
+Final theta [  1.53130025e-03   3.39734524e+00]
+--------------k=28--------------
+---one episode starts---
+initial theta [  1.53130025e-03   3.39734524e+00]
+One episode done in 174 steps, with total cost 173, within time 21137.8292739
+Final theta [  1.82893918e-03   3.40011940e+00]
+--------------k=29--------------
+---one episode starts---
+initial theta [  1.82893918e-03   3.40011940e+00]
+One episode done in 320 steps, with total cost 319, within time 19624.9069531
+Final theta [ 0.01        3.39859635]
+--------------k=30--------------
+---one episode starts---
+initial theta [ 0.01        3.39859635]
+One episode done in 203 steps, with total cost 202, within time 22471.8463271
+Final theta [ 0.          3.39947152]
+
 
