@@ -58,19 +58,19 @@ crm = build_crm()
 # set up actor_critic learner
 actor_critic_learner = actor_critic(crm, data_bound, quant_size,
 		       		Ts, uncertainty_prob, clambda,
-				gamma, beta, D)
+				Gamma, Beta, D)
 actor_critic_learner.set_init_goal(new_init, new_goal)                
-actor_critic_learner.set_theta(Theta[cri_seg])
+actor_critic_learner.set_theta(theta)
 
-# indrect learn
+# indrect learn via simulation
 print '|||||||Indirect learning for %d episodes|||||||' %static_learn_episodes
 indirect_learn_log = actor_critic_learner.complete_learn(static_learn_episodes,
 							mode ='model')
 
-# robot start moving
+# direct learn via robot moving
 print '|||||||Direct learning for 1 episode|||||||'
-direct_learn_log = actor_critic_learner.one_episode_learn(gamma_seq[k],
-						beta_seq[k], mode='experiment')
+direct_learn_log = actor_critic_learner.one_episode_learn(gamma,
+						beta, mode='experiment')
 ```
 
 <p align="center">  
