@@ -12,7 +12,7 @@ The robot has a limited buffer to store the data, which needs to be transmitted 
 
 
 <p align="center">  
-  <img src="https://github.com/MengGuo/ac_ltl_wsn/blob/master/figures/frame75.png" width="600"/>
+  <img src="https://github.com/MengGuo/ac_ltl_wsn/blob/master/figures/frame75.png" width="700"/>
 </p>
 
 
@@ -20,7 +20,7 @@ The robot has a limited buffer to store the data, which needs to be transmitted 
 -----
 Features
 -----
-* Implementation of the least-squares temporal difference (LSTD) method of the actor-critic type. [ref1] (http://epubs.siam.org/doi/pdf/10.1137/S0363012901385691) [ref2] (https://arxiv.org/pdf/1202.2185.pdf)
+* Implementation of the least-squares temporal difference (LSTD) method of the actor-critic type. [ref1](http://epubs.siam.org/doi/pdf/10.1137/S0363012901385691) [ref2](https://arxiv.org/pdf/1202.2185.pdf)
 
 
 ----
