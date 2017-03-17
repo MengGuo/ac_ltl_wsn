@@ -43,7 +43,7 @@ Content
 
 * Implementation of the least-squares temporal difference (LSTD) method of the actor-critic type. [[ref1]](http://epubs.siam.org/doi/pdf/10.1137/S0363012901385691) [[ref2]](https://arxiv.org/pdf/1202.2185.pdf)
 
-  * Task execution, workspace exploration, parameterized-policy learning all performed online and simultaneously, see [[ac.py]] (https://github.com/MengGuo/ac_ltl_wsn/blob/master/ac.py)
+  * Task execution, workspace exploration, parameterized-policy learning all performed online and simultaneously, see [[ac.py]](https://github.com/MengGuo/ac_ltl_wsn/blob/master/ac.py)
   * For single critical segment, see [[one_cri_seg_ac_learn.py]](https://github.com/MengGuo/ac_ltl_wsn/blob/master/one_cri_seg_ac_learn.py)
   * For a given high-level discrete plan, see [[ltl_ac_learn.py]](https://github.com/MengGuo/ac_ltl_wsn/blob/master/ltl_ac_learn.py)
   * **Indirect** learning mode via simulated experience, and **direct** learning via real experience. 
@@ -64,11 +64,13 @@ actor_critic_learner.set_theta(Theta[cri_seg])
 
 # indrect learn
 print '|||||||Indirect learning for %d episodes|||||||' %static_learn_episodes
-indirect_learn_log = actor_critic_learner.complete_learn(static_learn_episodes, mode ='model')
+indirect_learn_log = actor_critic_learner.complete_learn(static_learn_episodes,
+							mode ='model')
 
 # robot start moving
 print '|||||||Direct learning for 1 episode|||||||'
-direct_learn_log = actor_critic_learner.one_episode_learn(gamma_seq[k], beta_seq[k], mode='experiment')
+direct_learn_log = actor_critic_learner.one_episode_learn(gamma_seq[k],
+						beta_seq[k], mode='experiment')
 ```
 
 <p align="center">  
