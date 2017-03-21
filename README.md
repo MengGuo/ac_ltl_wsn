@@ -26,7 +26,7 @@ Content
   <img src="https://github.com/MengGuo/ac_ltl_wsn/blob/master/build_roadmap/roadmap_2D.png" width="700"/>
 </p>
 
-* Wireless routing based on Linear Programming (LP), see [wsn_routing](https://github.com/MengGuo/ac_ltl_wsn/tree/master/wsn_routing) folder
+* Wireless routing based on Linear Programming (LP), see [[wsn_routing]](https://github.com/MengGuo/ac_ltl_wsn/tree/master/wsn_routing) folder
 
 <p align="center">  
   <img src="https://github.com/MengGuo/ac_ltl_wsn/blob/master/wsn_routing/wsn_rate.png" width="700"/>
